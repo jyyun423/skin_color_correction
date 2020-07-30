@@ -35,10 +35,12 @@ end
 %     end
 % end
 
-patch_gt = getcolorpatch;
+patch_gt = getcolorpatch / 200;
 
-profile = 'IMG_7956.xml';
-img = patch_img(:,:,2);
+% color space of patch
+profile = 'IMG_8097.xml';
+load('colors.mat');
+img = colors;
 %% 
 
 % eliminate effects of illumination
@@ -51,3 +53,9 @@ corrected_img = img * W_f;
 
 csmat = getbaselinemodel(profile);
 baseline_corrected_img = img * csmat;
+%% 
+
+colors2checker(img);
+colors2checker(patch_gt);
+colors2checker(corrected_img);
+colors2checker(baseline_corrected_img);
