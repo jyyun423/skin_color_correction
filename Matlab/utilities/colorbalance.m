@@ -1,12 +1,10 @@
 function [cbmat] = ...
     colorbalance(target, camera_response, varargin)
 
-% Inputs: color space - camera RGB
-% camera_sensitivity: 3xN spectral sensitivities of the camera's R, G and B
-%                     channels (camera specific color space)
-% relfectance: Nx24 reflectance of scene's materials (sRGB?)
+% Inputs:
 % camera_response: 24x3 camera's sensor responses to the scene materials
-% target: 24x3 patch rgb color
+% lin-raw RGB
+% target: 24x3 patch sRGB color
 %
 % Optional Parameters:
 % loss:     (default = mse)
@@ -23,9 +21,6 @@ param = paramCheck(param);
 
 % check the inputs
 % add here
-% bias = camera_sensitivity * reflectance;
-% bias = bias.';
-
 
 % loss function handle
 lossfun = eval(['@', param.loss]);
