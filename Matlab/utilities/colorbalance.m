@@ -3,13 +3,15 @@ function [cbmat] = ...
 
 % Inputs:
 % camera_response: 24x3 camera's sensor responses to the scene materials
+% range [0, 1]
 % lin-raw RGB
-% target: 24x3 patch sRGB color
+% target: 24x3 patch sRGB color range [0, 1]
 %
 % Optional Parameters:
 % loss:     (default = mse)
 % model:    remove the effects of the illumination
 %           'whitebalance' | 'fullcolorbalance' (default = whitebalance)
+% weight:   
 % allowscale:        boolean value. If set to true, the camera responses
 %                    will be first scaled by a factor such that the mse
 %                    between camera's G values and target G (or Y, 
@@ -30,6 +32,13 @@ param = paramCheck(param);
 % check the inputs
 % add here
 
+% normalize the weights
+if ~isempty(param.weights)
+    param.weights = 24 * param.weights / sum(param.weights);
+else
+    param.weights = ones(24, 1);
+end
+
 % loss function handle
 lossfun = eval(['@', param.loss]);
 
@@ -38,18 +47,19 @@ paramPrint(param);
 
 % matrix calculation
 % set init matrix
-switch lower(param.model)
-    case 'whitebalance'
-    case 'fullcolorbalance'
-        mat_r = lsqlin(camera_response, target(:,1));
-        mat_g = lsqlin(camera_response, target(:,2));
-        mat_b = lsqlin(camera_response, target(:,3));
-
-        mat0 = [mat_r mat_g mat_b];
-    otherwise
-end
-
-% mat0 = mat0.';
+% switch lower(param.model)
+%     case 'whitebalance'
+%     case 'fullcolorbalance'
+%         mat_r = lsqlin(camera_response, target(:,1));
+%         mat_g = lsqlin(camera_response, target(:,2));
+%         mat_b = lsqlin(camera_response, target(:,3));
+% 
+%         mat0 = [mat_r mat_g mat_b];
+%     otherwise
+% end
+% 
+mat0 = (camera_response' * diag(param.weights) * camera_response)^(-1) *...
+          camera_response' * diag(param.weights) * target;
 
 switch lower(param.loss)
     case 'mse' % linear optimization
@@ -65,6 +75,7 @@ function param = parseInput(varargin)
 parser = inputParser;
 parser.addParameter('loss', 'mse', @(x)ischar(x));
 parser.addParameter('model', 'whitebalance', @(x)ischar(x));
+parser.addParameter('weights', [], @(x)validateattributes(x, {'numeric'}, {'positive'}));
 parser.parse(varargin{:});
 param = parser.Results;
 end
@@ -91,13 +102,16 @@ end
 
 function paramPrint(param)
 % make format pretty
-attr_idx = [2, 1];
+attr_idx = [2, 1, 3];
+param.weights = sprintf('[%.2G, ..., %.2G]',...
+                        param.weights(1), param.weights(end));
 
 disp('Color balance training parameters:')
 disp('=================================================================');
 field_names = fieldnames(param);
 field_name_dict.loss = 'Loss function';
 field_name_dict.model = 'Color correction model';
+field_name_dict.weights = 'Sample weights';
 
 for i = attr_idx
     len = fprintf('%s:',field_name_dict.(field_names{i}));

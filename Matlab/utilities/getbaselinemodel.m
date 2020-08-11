@@ -1,5 +1,6 @@
-function [csmat] = getbaselinemodel(profile)
-xdoc = xmlread(profile);
+function [cstmat] = getbaselinemodel(xml)
+
+xdoc = xmlread(xml);
 
 dcpData = xdoc.getDocumentElement;
 entries = dcpData.getChildNodes;
@@ -14,13 +15,15 @@ while ~isempty(node)
     end
 end
 
-temp = node.getTextContent;
-temp = string(temp);
-temp = split(temp);
-temp = temp(2:10);
-temp = double(temp);
-temp = flip(temp);
-temp = reshape(temp, 3,3);
-csmat = temp;
+tmp = node.getTextContent;
+tmp = split(string(tmp));
+ccmat = tmp(~strcmp(tmp,""));
+clear tmp ans node
+
+ccmat = flip(ccmat);
+ccmat = reshape(str2double(ccmat),3,[])';
+
+cstmat = ccmat;
+
 end
 

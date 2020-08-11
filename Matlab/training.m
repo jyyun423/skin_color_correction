@@ -2,6 +2,9 @@
 
 %% 
 
+img(2,2,1)
+%% 
+
 % set path
 
 clc
@@ -35,35 +38,60 @@ end
 %     end
 % end
 
-patch_srgb = getcolorpatch / 200; % scale by 200 <- why?
+patch_srgb = getcolorpatch / 243; % scale by 200 <- why?
 patch_xyz = getcolorpatch('colorspace', 'xyz');
+%% 
 
-% color space of patch
+% tmp
 profile = 'IMG_8097.xml';
 load('colors.mat');
-img = colors;
+patch = colors;
+img = IMG_8097;
 %% 
 
 % eliminate effects of illumination
 
-W_f = colorbalance(img, patch_srgb, 'model', 'fullcolorbalance');
-balanced_img = img * W_f;
+weight = ones(1,24) / 2;
+weight(1) = 6.5;
+weight(2) = 6.5;
+
+W_f = colorbalance(patch, patch_srgb, 'model', 'fullcolorbalance', 'weights', weight);
+balanced_img = patch * W_f;
+
+% %% 
+% 
+% % map camera sensor's color space to the desired perceptual color space
+% 
+% CST = colorspacetransform(balanced_img, patch_xyz, 'weights', weight);
+% corrected_patch = balanced_img * CST; % xyz color space
+% corrected_patch = xyz2rgb(corrected_patch);
 %% 
 
-% map camera sensor's color space to the desired perceptual color space
-
-weight = ones(1,24);
-CST = colorspacetransform(balanced_img, patch_xyz, 'weights', weight);
-corrected_img = balanced_img * CST;
-%% 
-
-% compare with baselinemodel
+% get baseline model's output
 
 csmat = getbaselinemodel(profile);
-baseline_corrected_img = img * csmat;
+baseline_corrected_patch = patch * csmat';
 %% 
 
-colors2checker(img);
+% apply to image
+
+colormat = (W_f + csmat)';
+corrected_img = applycmat(img, colormat);
+baseline_corrected_img = applycmat(img, csmat);
+%% 
+
+% tmp
+
+I = eye(3);
+temp = applycmat(img, I);
+%% 
+
 colors2checker(patch_srgb);
+colors2checker(colors);
 colors2checker(balanced_img);
-colors2checker(baseline_corrected_img);
+colors2checker(baseline_corrected_patch);
+
+imshow(corrected_img);
+imshow(baseline_corrected_img);
+imshow(img);
+imshow(temp);
