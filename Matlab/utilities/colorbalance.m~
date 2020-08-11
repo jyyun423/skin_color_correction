@@ -33,21 +33,18 @@ param = paramCheck(param);
 % loss function handle
 lossfun = eval(['@', param.loss]);
 
-% print info
-paramPrint(param);
-
 % matrix calculation
 % set init matrix
 switch lower(param.model)
     case 'whitebalance'
     case 'fullcolorbalance'
-        mat_r = lsqlin(camera_response, target(:,1));
-        mat_g = lsqlin(camera_response, target(:,2));
-        mat_b = lsqlin(camera_response, target(:,3));
-
-        mat0 = [mat_r mat_g mat_b];
-    otherwise
+        other
 end
+mat_r = lsqlin(camera_response, target(:,1));
+mat_g = lsqlin(camera_response, target(:,2));
+mat_b = lsqlin(camera_response, target(:,3));
+
+mat0 = [mat_r mat_g mat_b];
 
 % mat0 = mat0.';
 
@@ -104,5 +101,5 @@ for i = attr_idx
     fprintf(repmat(' ', 1, 42-len));
     fprintf('%s\n', string(param.(field_names{i})));
 end
-fprintf('================================================================= \n\n');
+disp('=================================================================');
 end

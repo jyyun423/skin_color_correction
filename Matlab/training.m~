@@ -64,6 +64,6 @@ baseline_corrected_img = img * csmat;
 %% 
 
 colors2checker(img);
-colors2checker(patch_srgb);
+colors2checker(patch_gt);
 colors2checker(balanced_img);
 colors2checker(baseline_corrected_img);
