@@ -2,9 +2,6 @@
 
 %% 
 
-img(2,2,1)
-%% 
-
 % set path
 
 clc
@@ -32,31 +29,33 @@ for i=1:length
     end
 end
 
-% for j=1:profilelength
-%     if ~profile(j).isdir
-%         patch_profile = [patch_profile; profile(j).name];
-%     end
-% end
+for j=1:profilelength
+    if ~profile(j).isdir
+        patch_profile = [patch_profile; profile(j).name];
+    end
+end
 
-patch_srgb = getcolorpatch / 243; % scale by 200 <- why?
+patch_srgb = getcolorpatch / 255; % scale by 200 <- why?
 patch_xyz = getcolorpatch('colorspace', 'xyz');
+patch_lab = getcolorpatch('colorspace', 'lab');
 %% 
 
-% tmp
-profile = 'IMG_8097.xml';
-load('colors.mat');
-patch = colors;
-img = IMG_8097;
-%% 
+% eliminate effects of illumination of patch
 
-% eliminate effects of illumination
+% weight = ones(1,24) / 2;
+% weight(1) = 6.5;
+% weight(2) = 6.5;
+err = 0.0;
+W_f = [];
 
-weight = ones(1,24) / 2;
-weight(1) = 6.5;
-weight(2) = 6.5;
+for k=1:length
+    W_f_tmp = colorbalance(patch_img(k), patch_xyz, 'model', 'fullcolorbalance', 'weights', weight);
+    fcbalanced_patch = patch * W_f_tmp;
+    W_f = cat(3, W_f, W_f_tmp);
+    err = err + angular_error_between_src_dst(fcbalanced_patch, patch_xyz);
+end
 
-W_f = colorbalance(patch, patch_srgb, 'model', 'fullcolorbalance', 'weights', weight);
-balanced_img = patch * W_f;
+err = err / length;
 
 % %% 
 % 
@@ -69,8 +68,17 @@ balanced_img = patch * W_f;
 
 % get baseline model's output
 
-csmat = getbaselinemodel(profile);
-baseline_corrected_patch = patch * csmat';
+baseline_err = 0.0;
+csmat = [];
+
+for k=1:length
+    csmat_tmp = getbaselinemodel(patch_profile(k));
+    baseline_corrected_patch = patch * csmat_tmp';
+    csmat = cat(3, csmat, csmat_tmp);
+    baseline_err = baseline_err + angular_error_between_src_dst(baseline_corrected_patch, patch_srgb);
+end
+
+baseline_err = baseline_err / length;
 %% 
 
 % apply to image
@@ -80,15 +88,9 @@ corrected_img = applycmat(img, colormat);
 baseline_corrected_img = applycmat(img, csmat);
 %% 
 
-% tmp
-
-I = eye(3);
-temp = applycmat(img, I);
-%% 
-
 colors2checker(patch_srgb);
 colors2checker(colors);
-colors2checker(balanced_img);
+colors2checker(balanced_patch);
 colors2checker(baseline_corrected_patch);
 
 imshow(corrected_img);
