@@ -2,10 +2,10 @@ function [cbmat] = ...
     colorbalance(camera_response, target, varargin)
 
 % Inputs:
-% camera_response: 24x3 camera's sensor responses to the scene materials
+% camera_response: Nx3 camera's sensor responses to the scene materials
 % range [0, 1]
 % lin-raw RGB
-% target: 24x3 patch sRGB color range [0, 1]
+% target: Nx3 patch sRGB color range [0, 1]
 %
 % Optional Parameters:
 % loss:     (default = mse)
@@ -32,11 +32,12 @@ param = paramCheck(param);
 % check the inputs
 % add here
 
+N = length(camera_response(1));
 % normalize the weights
 if ~isempty(param.weights)
-    param.weights = 24 * param.weights / sum(param.weights);
+    param.weights = N * param.weights / sum(param.weights);
 else
-    param.weights = ones(24, 1);
+    param.weights = ones(N, 1);
 end
 
 % loss function handle
@@ -59,7 +60,7 @@ paramPrint(param);
 % end
 % 
 mat0 = (camera_response' * diag(param.weights) * camera_response)^(-1) *...
-          camera_response' * diag(param.weights) * target;
+          camera_response' * diag(param.weights) * target; % angular reproduction error로 수정하기
 
 switch lower(param.loss)
     case 'mse' % linear optimization
