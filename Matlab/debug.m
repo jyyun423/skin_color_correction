@@ -33,3 +33,7 @@ colors2checker(fcbalanced_patch)
 
 imshow(img)
 imshow(corrected_img)
+%% 
+
+I = imread('outdoor001.dng');
+imtool(I)
