@@ -25,7 +25,6 @@ baseline_corrected_img = applycmat(img, csmat);
 %% 
 
 patch_err = angular_error_between_src_dst(fcbalanced_patch, patch_xyz);
-patch_baseline_err = angular_error_between_src_dst(baseline_corrected_patch, patch_xyz);
 %% 
 
 colors2checker(patch_xyz)

@@ -21,6 +21,7 @@ profilelength = size(profile, 1);
 % get datas & ground truth
 patch_img = [];
 patch_profile = [];
+img = [];
 
 for i=1:length
     if ~dataset(i).isdir
@@ -35,7 +36,9 @@ for j=1:profilelength
     end
 end
 
-patch_srgb = getcolorpatch / 255; % scale by 200 <- why?
+% for m=1:length
+% end
+
 patch_xyz = getcolorpatch('colorspace', 'xyz');
 patch_lab = getcolorpatch('colorspace', 'lab');
 %% 
@@ -56,20 +59,16 @@ for k=1:length
 end
 
 err = err / length;
-
-% %% 
-% 
-% % map camera sensor's color space to the desired perceptual color space
-% 
-% CST = colorspacetransform(balanced_img, patch_xyz, 'weights', weight);
-% corrected_patch = balanced_img * CST; % xyz color space
-% corrected_patch = xyz2rgb(corrected_patch);
 %% 
 
 % apply to image
 
-colormat = (W_f + csmat)';
-corrected_img = applycmat(img, colormat);
+corrected_img = [];
+
+for l=1:length
+    colormat_tmp = W_f(l)';
+    corrected_img = cat(4, corrected_img, applycmat(img, colormat_tmp);
+end
 %% 
 
 colors2checker(patch_srgb);
