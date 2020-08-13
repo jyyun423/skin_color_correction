@@ -66,34 +66,15 @@ err = err / length;
 % corrected_patch = xyz2rgb(corrected_patch);
 %% 
 
-% get baseline model's output
-
-baseline_err = 0.0;
-csmat = [];
-
-for k=1:length
-    csmat_tmp = getbaselinemodel(patch_profile(k));
-    baseline_corrected_patch = patch * csmat_tmp';
-    csmat = cat(3, csmat, csmat_tmp);
-    baseline_err = baseline_err + angular_error_between_src_dst(baseline_corrected_patch, patch_srgb);
-end
-
-baseline_err = baseline_err / length;
-%% 
-
 % apply to image
 
 colormat = (W_f + csmat)';
 corrected_img = applycmat(img, colormat);
-baseline_corrected_img = applycmat(img, csmat);
 %% 
 
 colors2checker(patch_srgb);
 colors2checker(colors);
 colors2checker(balanced_patch);
-colors2checker(baseline_corrected_patch);
 
 imshow(corrected_img);
-imshow(baseline_corrected_img);
 imshow(img);
-imshow(temp);
