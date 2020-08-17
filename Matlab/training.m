@@ -15,7 +15,6 @@ length = length(dataset);
 
 % get datas & ground truth patch data
 patch_img = [];
-patch_profile = [];
 img = [];
 
 for i=1:length
@@ -39,13 +38,14 @@ patch_lab = getcolorpatch('colorspace', 'lab');
 % weight = ones(1,24) / 2;
 % weight(1) = 6.5;
 % weight(2) = 6.5;
-err = 0.0;
+err = zeros(24,1);
 W_f = [];
 
 for k=1:length
-    W_f_tmp, err = colorbalance(patch_img(k), patch_xyz, 'model', 'fullcolorbalance', 'weights', weight);
-    fcbalanced_patch = patch * W_f_tmp;
+    [W_f_tmp, err_tmp] = colorbalance(patch_img(k), patch_xyz, 'model', 'fullcolorbalance', 'weights', weight);
+    fcbalanced_patch = patch_img(k) * W_f_tmp;
     W_f = cat(3, W_f, W_f_tmp);
+    err = err + err_tmp;
 end
 
 err = err / length;
@@ -57,13 +57,5 @@ corrected_img = [];
 
 for l=1:length
     colormat_tmp = W_f(l)';
-    corrected_img = cat(4, corrected_img, applycmat(img, colormat_tmp);
+    corrected_img = cat(4, corrected_img, applycmat(img, colormat_tmp));
 end
-%% 
-
-colors2checker(patch_srgb);
-colors2checker(colors);
-colors2checker(balanced_patch);
-
-imshow(corrected_img);
-imshow(img);

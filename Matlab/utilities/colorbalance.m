@@ -1,4 +1,4 @@
-function [cbmat] = ...
+function [cbmat, errs] = ...
     colorbalance(camera, target, varargin)
 
 % Inputs:
@@ -52,7 +52,7 @@ switch lower(param.loss)
 
         switch lower(param.targetcolorspace)
             case 'srgb'
-                errs = @(x) angular_error(predicted_response(x), target);
+                errs = @(x) angular_error(predicted_response(x), target); % is angular error for normalized rgb?
             case 'xyz'
                 predicted_lab = @(x) xyz2lab(predicted_response(x));
                 errs = @(x) deltaE2000_error(predicted_lab(x), target_lab);
@@ -64,8 +64,8 @@ switch lower(param.loss)
         Aeq = []; beq = []; % ?
 
         options = optimoptions(@fmincon,...
-                               'MaxFunctionEvaluations', 10000,...
-                               'MaxIterations',2000,...
+                               'MaxFunctionEvaluations', 1000,...
+                               'MaxIterations',200,...
                                'Display','iter',...
                                'Algorithm','sqp',...
                                'PlotFcns',[]);
@@ -74,6 +74,15 @@ switch lower(param.loss)
 end
 
 cbmat = matrix;
+predicted = camera * cbmat;
+
+switch lower(param.targetcolorspace)
+    case 'srgb'
+        errs = angular_error(predicted, target);
+    case 'xyz'
+        lab_predicted = xyz2lab(predicted);
+        errs = deltaE2000_error(lab_predicted, target_lab);
+end
 
 end
 

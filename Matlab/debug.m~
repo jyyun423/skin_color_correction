@@ -40,4 +40,4 @@ imshow(corrected_img)
 
 tmp = shadecompensation(outdoor001, [4,6], 'allowadjust', true);
 white = shadecompensation(outdoor001, [4,6], 'allowadjust', true);
-tmp = tmp./white;
+tmp = tmp(:,1:28,:)
