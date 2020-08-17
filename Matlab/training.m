@@ -11,14 +11,9 @@ datasetDir = './dataset/iphone7/patch/';
 datasetname = [datasetDir '*.mat'];
 dataset = dir(datasetDir);
 length = length(dataset);
-
-profileDir = './dataset/iphone7/profiles/';
-profilename = [profileDir '*.xml'];
-profile = dir(profileDir);
-profilelength = size(profile, 1);
 %% 
 
-% get datas & ground truth
+% get datas & ground truth patch data
 patch_img = [];
 patch_profile = [];
 img = [];
@@ -30,12 +25,6 @@ for i=1:length
     end
 end
 
-for j=1:profilelength
-    if ~profile(j).isdir
-        patch_profile = [patch_profile; profile(j).name];
-    end
-end
-
 % for m=1:length
 % end
 
@@ -43,7 +32,9 @@ patch_xyz = getcolorpatch('colorspace', 'xyz');
 patch_lab = getcolorpatch('colorspace', 'lab');
 %% 
 
-% eliminate effects of illumination of patch
+% calculate 3x3 color correction matrix 
+% choose the target color space; either srgb for display or xyz for
+% perceptual purpose
 
 % weight = ones(1,24) / 2;
 % weight(1) = 6.5;
@@ -52,10 +43,9 @@ err = 0.0;
 W_f = [];
 
 for k=1:length
-    W_f_tmp = colorbalance(patch_img(k), patch_xyz, 'model', 'fullcolorbalance', 'weights', weight);
+    W_f_tmp, err = colorbalance(patch_img(k), patch_xyz, 'model', 'fullcolorbalance', 'weights', weight);
     fcbalanced_patch = patch * W_f_tmp;
     W_f = cat(3, W_f, W_f_tmp);
-    err = err + angular_error_between_src_dst(fcbalanced_patch, patch_xyz);
 end
 
 err = err / length;

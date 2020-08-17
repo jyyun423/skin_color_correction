@@ -1,5 +1,5 @@
 function [cbmat] = ...
-    colorbalance(camera_response, target, varargin)
+    colorbalance(camera, target, varargin)
 
 % Inputs:
 % camera_response: Nx3 camera's sensor responses to the scene materials
@@ -8,18 +8,12 @@ function [cbmat] = ...
 % target: Nx3 patch sRGB color range [0, 1]
 %
 % Optional Parameters:
-% loss:     (default = mse)
+% loss:     linear or nonlinear
 % model:    remove the effects of the illumination
 %           'whitebalance' | 'fullcolorbalance' (default = whitebalance)
 % weight:   
-% allowscale:        boolean value. If set to true, the camera responses
-%                    will be first scaled by a factor such that the mse
-%                    between camera's G values and target G (or Y, 
-%                    depending on 'targetcolorspace') values is minimized.
-%                    This option will be useful if the camera responses are
-%                    in a different range from the target responses. When 
-%                    this option is enabled, 'omitlightness' option will be 
-%                    false. (default = true)
+% targetcolorspace: sRGB / xyz > for srgb target, error metric is angular
+% reproduction err for xyz deltaE00
 %
 % Outputs:
 % cbmat:    3x3 optimal color balance matrix
@@ -30,9 +24,12 @@ param = parseInput(varargin{:});
 param = paramCheck(param);
 
 % check the inputs
-% add here
 
-N = length(camera_response(1));
+% target_lab
+target_lab = getcolorpatch('colorspace', 'lab');
+
+N = length(camera(1));
+
 % normalize the weights
 if ~isempty(param.weights)
     param.weights = N * param.weights / sum(param.weights);
@@ -40,33 +37,43 @@ else
     param.weights = ones(N, 1);
 end
 
-% loss function handle
-lossfun = eval(['@', param.loss]);
-
 % print info
 paramPrint(param);
 
-% matrix calculation
-% set init matrix
-% switch lower(param.model)
-%     case 'whitebalance'
-%     case 'fullcolorbalance'
-%         mat_r = lsqlin(camera_response, target(:,1));
-%         mat_g = lsqlin(camera_response, target(:,2));
-%         mat_b = lsqlin(camera_response, target(:,3));
-% 
-%         mat0 = [mat_r mat_g mat_b];
-%     otherwise
-% end
-% 
-mat0 = (camera_response' * diag(param.weights) * camera_response)^(-1) *...
-          camera_response' * diag(param.weights) * target; % angular reproduction error로 수정하기
+mat0 = (camera' * diag(param.weights) * camera)^(-1) *...
+          camera' * diag(param.weights) * target;
 
 switch lower(param.loss)
-    case 'mse' % linear optimization
-        cbmat = mat0;
+    case 'linear'
+        matrix = mat0;
     otherwise
+        matrix = @(x) reshape(x, 3, 3);
+        predicted_response = @(x) camera * matrix(x);
+
+        switch lower(param.targetcolorspace)
+            case 'srgb'
+                errs = @(x) angular_error(predicted_response(x), target);
+            case 'xyz'
+                predicted_lab = @(x) xyz2lab(predicted_response(x));
+                errs = @(x) deltaE2000_error(predicted_lab(x), target_lab);
+        end
+
+        errs = @(x) param.weights' .* errs(x);
+        costfun = @(x) mean(errs(x));
+
+        Aeq = []; beq = []; % ?
+
+        options = optimoptions(@fmincon,...
+                               'MaxFunctionEvaluations', 10000,...
+                               'MaxIterations',2000,...
+                               'Display','iter',...
+                               'Algorithm','sqp',...
+                               'PlotFcns',[]);
+        matrix = fmincon(costfun, mat0(:), [], [], Aeq, beq, [], [], [], options);
+        matrix = reshape(matrix, 3, 3);
 end
+
+cbmat = matrix;
 
 end
 
@@ -74,9 +81,10 @@ end
 function param = parseInput(varargin)
 % parse inputs & return structure of parameters
 parser = inputParser;
-parser.addParameter('loss', 'mse', @(x)ischar(x));
+parser.addParameter('loss', 'linear', @(x)ischar(x));
 parser.addParameter('model', 'whitebalance', @(x)ischar(x));
 parser.addParameter('weights', [], @(x)validateattributes(x, {'numeric'}, {'positive'}));
+parser.addParameter('targetcolorspace', 'xyz', @(x)ischar(x));
 parser.parse(varargin{:});
 param = parser.Results;
 end
@@ -93,7 +101,7 @@ if ~ismember(lower(param.model), model_list)
 end
 
 %check the loss function
-metric_list = {'mse'}; % add more
+metric_list = {'linear', 'nonlinear'};
 if ~ismember(lower(param.loss), metric_list)
     error('%s is not a valid loss function',...
         param.loss);
@@ -103,15 +111,22 @@ end
 
 function paramPrint(param)
 % make format pretty
-attr_idx = [2, 1, 3];
+attr_idx = [2, 1, 3, 4];
 param.weights = sprintf('[%.2G, ..., %.2G]',...
                         param.weights(1), param.weights(end));
+
+if strcmpi(param.targetcolorspace, 'sRGB')
+    param.targetcolorspace = 'sRGB';
+elseif strcmpi(param.targetcolorspace, 'XYZ')    
+    param.targetcolorspace = 'CIE XYZ';
+end
 
 disp('Color balance training parameters:')
 disp('=================================================================');
 field_names = fieldnames(param);
 field_name_dict.loss = 'Loss function';
 field_name_dict.model = 'Color correction model';
+field_name_dict.targetcolorspace = 'Color space of the target responses';
 field_name_dict.weights = 'Sample weights';
 
 for i = attr_idx

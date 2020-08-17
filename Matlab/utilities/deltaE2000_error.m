@@ -20,25 +20,18 @@ assert(size(source, 2) == 3,...
    
 % get deltaE 2000 error
 % step 1 : calculate chorma', hue'
-L_target = target(:,1)';
-a_target = target(:,2)';
-b_target = target(:,3)';
+L_target = target(:,1); a_target = target(:,2); b_target = target(:,3);
 
-L_source = source(:,1)';
-a_source = source(:,2)';
-b_source = source(:,3)';
+L_source = source(:,1); a_source = source(:,2); b_source = source(:,3);
 
-Cab_target = sqrt(a_target.^2 + b_target.^2);
-Cab_source = sqrt(a_source.^2 + b_source.^2);
+Cab_target = sqrt(a_target.^2 + b_target.^2); Cab_source = sqrt(a_source.^2 + b_source.^2);
 Cab_mean = (Cab_target + Cab_source) / 2;
 
 G = 0.5 * (1 - sqrt((Cab_mean.^7)./(Cab_mean.^7 + 25^7)));
 
-aprime_target = (1+G).*a_target;
-aprime_source = (1+G).*a_source;
+aprime_target = (1+G).*a_target; aprime_source = (1+G).*a_source;
 
-Cprime_target = sqrt(aprime_target.^2 + b_target.^2);
-Cprime_source = sqrt(aprime_source.^2 + b_source.^2);
+Cprime_target = sqrt(aprime_target.^2 + b_target.^2); Cprime_source = sqrt(aprime_source.^2 + b_source.^2);
 
 hprime_target = atan2(b_target, aprime_target);
 hprime_target = hprime_target + 2*pi*(hprime_target < 0);
@@ -53,8 +46,8 @@ Cprime_prod = (Cprime_source.*Cprime_target);
 zero = find(Cprime_prod == 0);
 
 dh_tmp = hprime_source - hprime_target;
-deltahprime = (zero == 0) * 0 + ...
-    (zero ~= 0) * ((dh_tmp) + ((dh_tmp > pi)*(-2*pi) + (dh_tmp < -pi)*(2*pi)));
+deltahprime = (dh_tmp) + ((dh_tmp > pi)*(-2*pi) + (dh_tmp < -pi)*(2*pi));
+deltahprime(zero) = 0;
 
 deltaH = 2 * sqrt(Cprime_prod) .* sin(deltahprime/2);
 
@@ -63,8 +56,9 @@ Lprime = (L_source + L_target) / 2;
 Cprime = (Cprime_source + Cprime_target) / 2;
 
 hp_tmp = (hprime_source + hprime_target) / 2;
-hprime = (zero == 0) * 0 + (zero ~= 0) * (hp_tmp - (abs(dh_tmp) > pi) * pi);
+hprime = hp_tmp - (abs(dh_tmp) > pi) * pi;
 hprime = hprime + (hprime < 0)*2*pi;
+hprime(zero) = 0;
 
 T = 1 - 0.17*cos(hprime-pi/6) + 0.24*cos(2*hprime) + ...
     0.32*cos(3*hprime+pi/30) - 0.20*cos(4*hprime-63*pi/180);

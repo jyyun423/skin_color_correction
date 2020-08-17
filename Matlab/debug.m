@@ -4,31 +4,33 @@ checker2colors(outdoor001, [4,6], 'allowadjust', true)
 %% 
 
 patch_xyz = getcolorpatch('colorspace', 'xyz');
+patch_rgb = getcolorpatch();
 load('indoor000.mat');
-patch = indoor000_patch;
+camera_respons_patch = indoor000_patch;
 img = indoor000;
 %% 
 
 weight = ones(1,24) / 2;
 % weight(19) = 5;
 
-W_f = colorbalance(patch, patch_xyz, 'model', 'fullcolorbalance', 'weights', weight);
-fcbalanced_patch= patch * W_f;
+W_f = colorbalance(camera_respons_patch, patch_xyz, 'model', 'fullcolorbalance', 'weights', weight, 'loss', 'nonlinear');
+fcbalanced_patch= camera_respons_patch * W_f;
 %% 
 
 colormat = W_f';
 corrected_img = applycmat(img, colormat);
 %% 
 
-patch_lab = xyz2lab(fcbalanced_patch);
+angular_err = angular_error(fcbalanced_patch, patch_rgb);
+angular_err = sum(angular_err) / 24;
 %% 
 
-patch_err = angular_error(fcbalanced_patch, patch_xyz);
-patch_err = sum(patch_err) / 24;
+fcbalanced_patch_lab = xyz2lab(fcbalanced_patch);
+de_err = deltaE2000_error(fcbalanced_patch, patch_lab);
 %% 
 
 colors2checker(patch_rgb)
-colors2checker(patch)
+colors2checker(camera_respons_patch)
 colors2checker(fcbalanced_patch)
 
 imshow(img)
