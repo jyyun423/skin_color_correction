@@ -5,6 +5,7 @@ checker2colors(outdoor001, [4,6], 'allowadjust', true)
 
 patch_xyz = getcolorpatch('colorspace', 'xyz');
 patch_rgb = getcolorpatch();
+patch_lab = getcolorpatch('colorspace', 'lab');
 load('indoor000.mat');
 camera_respons_patch = indoor000_patch;
 img = indoor000;
@@ -15,6 +16,9 @@ weight = ones(1,24) / 2;
 
 [W_f, err] = colorbalance(camera_respons_patch, patch_xyz, 'model', 'fullcolorbalance', 'weights', weight, 'loss', 'nonlinear');
 fcbalanced_patch= camera_respons_patch * W_f;
+%% 
+cam_lab = xyz2lab(camera_respons_patch);
+original_err = deltaE2000_error(cam_lab, patch_lab);
 %% 
 
 colormat = W_f';
@@ -39,5 +43,3 @@ imshow(corrected_img)
 
 
 tmp = shadecompensation(outdoor001, [4,6], 'allowadjust', true);
-white = shadecompensation(outdoor001, [4,6], 'allowadjust', true);
-tmp = tmp./white;

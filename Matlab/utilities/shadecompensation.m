@@ -1,4 +1,4 @@
-function [colors, roi_rects] = shadecompensation(checker_img, layout, varargin)
+function [colors, roi_rects] = checker2colors(checker_img, layout, varargin)
 %%
 % CHECKER2COLORS extracts color responses from an image containing color
 % checker. Two modes, 'drag' and 'click', are supported. ('auto' mode is to
@@ -239,23 +239,7 @@ end
 % determine the statistical way to extract responses from rois
 getcolorfun = @median; % @mean is fine too
 
-% midgray compensation
-compensate_roi = round(roi_rects(22, :));
-compensate_roi = max(compensate_roi, 1);
-compensate_roi(3) = min(compensate_roi(3), width - compensate_roi(1) - 1);
-compensate_roi(4) = min(compensate_roi(4), height - compensate_roi(2) - 1);
-
-compensate = checker_img(compensate_roi(2) + [0:compensate_roi(4)],...
-                         compensate_roi(1) + [0:compensate_roi(3)],...
-                         :);
-compensate_r = max(compensate(:,:,1), [], 'all');
-compensate_g = max(compensate(:,:,2), [], 'all');
-compensate_b = max(compensate(:,:,3), [], 'all');
-
-compensate(:,:,1) = compensate(:,:,1)/compensate_r;
-compensate(:,:,2) = compensate(:,:,2)/compensate_g;
-compensate(:,:,3) = compensate(:,:,3)/compensate_b;
-% extract responses from rois                    
+% extract responses from rois
 colors = zeros(N, depth);
 for i = 1:N
     % roi_rect_ is in [x_begin, y_begin, width, height] form
@@ -267,8 +251,6 @@ for i = 1:N
     roi = checker_img(roi_rect_(2) + [0:roi_rect_(4)],...
                       roi_rect_(1) + [0:roi_rect_(3)],...
                       :);
-    roi_ = roi ./ compensate;
-    
 	colors(i,:) = squeeze(getcolorfun(getcolorfun(roi, 1), 2))';
 end
 
