@@ -27,6 +27,7 @@ end
 % for m=1:length
 % end
 
+patch_rgb = getcolorpatch();
 patch_xyz = getcolorpatch('colorspace', 'xyz');
 patch_lab = getcolorpatch('colorspace', 'lab');
 %% 
@@ -42,13 +43,14 @@ err = zeros(24,1);
 W_f = [];
 
 for k=1:length
-    [W_f_tmp, err_tmp] = colorbalance(patch_img(k), patch_xyz, 'model', 'fullcolorbalance', 'weights', weight);
+    [W_f_tmp, err_tmp] = colorbalance(patch_img(k), patch_xyz,...
+        'model', 'fullcolorbalance', 'weights', weight);
     fcbalanced_patch = patch_img(k) * W_f_tmp;
     W_f = cat(3, W_f, W_f_tmp);
     err = err + err_tmp;
 end
 
-err = err / length;
+% err = err / length;
 %% 
 
 % apply to image
