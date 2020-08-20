@@ -1,6 +1,9 @@
-%% extract color patches from images
 
 clear, clc, close all
+%% extract color patches from iphone7 images (get raw image file using VSCO)
+% don't need to process image before extracting patch
+
+info_phone = imfinfo('indoor000.dng');
 %% 
 
 path = './dataset/skin/iphone7/original/';
@@ -15,7 +18,4 @@ for num = 1:nfiles
     colors = checker2colors(raw, [4,6], 'allowadjust', true);
     save(pathsmat(num).name,'colors') % do it in directory you want to save
 end
-%% 
-
-colors = checker2colors(indoor001, [4,6], 'allowadjust', true);
-save('colors') % do it in directory you want to save
+%% extract color patches from nikonD850 images
