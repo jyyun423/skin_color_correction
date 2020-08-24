@@ -69,6 +69,9 @@ function [colors, roi_rects] = checker2colors(checker_img, layout, varargin)
 %                    as the ROI, otherwise to close the figure after
 %                    vertices selection. You may wish to set it to false in
 %                    the batch extraction cases. (default = true)
+% colorfun:          recommend median for extracting color patch
+%                    and mean for extracting skin color from corrected
+%                    image
 %
 % OUTPUTS:
 % colors:            N*C matrix of the extracted color responses, where N =
@@ -237,7 +240,15 @@ if param.allowadjust
 end
 
 % determine the statistical way to extract responses from rois
-getcolorfun = @median; % @mean is fine too
+switch lower(param.colorfun)
+    case 'median'
+        getcolorfun = @median;
+    case 'mean'
+        getcolorfun = @mean;
+    otherwise
+        error('%s is not a valid color function',...
+        param.colorfun);
+end
 
 % extract responses from rois
 colors = zeros(N, depth);
@@ -361,6 +372,7 @@ parser.addParameter('roisize', [], @(x)validateattributes(x, {'numeric'}, {'posi
 parser.addParameter('scale', 1, @(x)validateattributes(x, {'numeric'}, {'positive'}));
 parser.addParameter('gamma', 1, @(x)validateattributes(x, {'numeric'}, {'positive'}));
 parser.addParameter('show', true, @(x)islogical(x));
+parser.addParameter('colorfun', 'median', @ischar);
 parser.parse(varargin{:});
 param = parser.Results;
 % check the params

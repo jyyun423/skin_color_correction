@@ -38,3 +38,6 @@ getcolorfun = @mean; % median is fine
 for i=1:3
     skincolor(i) = getcolorfun(getcolorfun(rgbImg(:,:,i)));
 end
+%% or just use existing function
+
+skincolors = checker2colors(rgb, [4,1], 'allowadjust', true, 'colorfun', 'mean');
