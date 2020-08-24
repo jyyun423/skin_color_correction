@@ -20,9 +20,21 @@ ct = W_f(:,:,5)';
 % apply color matrix to image
 
 corrected_img = applycmat(img, ct);
-%% 
+%% display corrected img
 
 % if you want to display the output, 
 % xyz to rgb color space transform is needed
 rgb = xyz2rgb(corrected_img, 'WhitePoint', 'd50');
 imshow(rgb)
+%% Extract skin color
+
+rgbImg = imcrop(rgb);
+%% get skin color
+
+skincolor = zeros(1,3);
+
+getcolorfun = @mean; % median is fine
+
+for i=1:3
+    skincolor(i) = getcolorfun(getcolorfun(rgbImg(:,:,i)));
+end
