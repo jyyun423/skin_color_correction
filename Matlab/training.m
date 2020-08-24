@@ -7,7 +7,7 @@
 clc
 clear
 
-datasetDir = './dataset/iphone7/patch/';
+datasetDir = './dataset/skin/iphone7/patch/';
 datasetname = [datasetDir '*.mat'];
 dataset = dir(datasetDir);
 length = length(dataset);
@@ -15,7 +15,7 @@ length = length(dataset);
 
 % get datas & ground truth patch data
 patch_img = [];
-img = [];
+% img = [];
 
 for i=1:length
     if ~dataset(i).isdir
@@ -50,13 +50,3 @@ for k=1:len
 end
 
 % err = err / length;
-%% 
-
-% apply to image
-
-corrected_img = [];
-
-for l=1:length
-    colormat_tmp = W_f(l)';
-    corrected_img = cat(4, corrected_img, applycmat(img, colormat_tmp));
-end

@@ -8,11 +8,11 @@ clear, clc, close all
 % since original dng file only provides thumbnail of image
 %% 
 
-path = './dataset/nikond850/original/';
+path = './dataset/skin/iphone7/original/';
 pathname = [path '*.mat'];
 pathsmat = dir(pathname);
 nfiles = length(pathsmat);
-savepath = './dataset/nikond850/patch/';
+savepath = './dataset/skin/iphone7/patch/';
 %% 
 
 for num = 5:nfiles

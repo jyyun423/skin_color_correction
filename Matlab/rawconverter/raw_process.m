@@ -27,7 +27,7 @@ clear,clc,close all
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 % - - Enter the filename and choose reading approach, 'DNG' or 'DCRAW', and
 % the Bayer pixel arrangement of camera, 'rggb','bggr','gbrg' or 'grbg' - -
-filename = 'outdoor_shade_light.dng';
+filename = 'indoor000.dng';
 read_app = 'DNG';               % 'DNG' for .dng  or  'DCRAW' for .tiff
 bayer_type = 'rggb';
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
