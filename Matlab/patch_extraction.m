@@ -4,7 +4,7 @@ clear, clc, close all
 % don't need to process image before extracting patch
 %% extract color patches from nikonD850 images
 % use adobe dng converter to convert .NEF files to .dng files
-% before extracting patch, convert raw file to matrix using raw_process.m
+% before extracting patch, convert raw file to .mat file using raw_process.m
 % since original dng file only provides thumbnail of image
 %% 
 

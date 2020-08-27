@@ -1,6 +1,5 @@
 %% apply to image
 
-% load image file in matlab workspace and change its name to img
 % image should be normalized if image class is either uint8 or uint16
 switch class(img)
     case 'double'
@@ -27,7 +26,6 @@ corrected_img = applycmat(img, ct);
 % xyz to rgb color space transform is needed
 rgb = xyz2rgb(corrected_img, 'WhitePoint', 'd50');
 imshow(rgb)
-%% extract skin color
+%% e
 
-% change the layout according to the number of skin color patch in image
-skincolors = checker2colors(corrected_img, [4,1], 'allowadjust', true, 'colorfun', 'mean');
+skincolors = checker2colors(rgb, [4,1], 'allowadjust', true, 'colorfun', 'mean');

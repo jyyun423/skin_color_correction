@@ -9,11 +9,10 @@ function [cbmat, errs] = ...
 %
 % Optional Parameters:
 % loss:     linear or nonlinear
-% model:    remove the effects of the illumination
-%           'whitebalance' | 'fullcolorbalance' (default = whitebalance)
-% weight:   
-% targetcolorspace: sRGB / xyz > for srgb target, error metric is angular
-% reproduction err for xyz deltaE00
+%           in srgb colorspace, angular error metric is used
+%           in CIE xyz colorspace, CIEDE 2000 delta E error metric is used
+% weight:   weight coefficients for sample
+% targetcolorspace: sRGB | xyz 
 %
 % Outputs:
 % cbmat:    3x3 optimal color balance matrix
@@ -91,7 +90,6 @@ function param = parseInput(varargin)
 % parse inputs & return structure of parameters
 parser = inputParser;
 parser.addParameter('loss', 'linear', @(x)ischar(x));
-parser.addParameter('model', 'whitebalance', @(x)ischar(x));
 parser.addParameter('weights', [], @(x)validateattributes(x, {'numeric'}, {'positive'}));
 parser.addParameter('targetcolorspace', 'xyz', @(x)ischar(x));
 parser.parse(varargin{:});
@@ -101,13 +99,6 @@ end
 
 function param = paramCheck(param)
 % check the parameters
-
-% check the color balance model
-model_list = {'whitebalance', 'fullcolorbalance'};
-if ~ismember(lower(param.model), model_list)
-    error('%s is not a valid color balance model',...
-        param.model);
-end
 
 %check the loss function
 metric_list = {'linear', 'nonlinear'};
@@ -134,7 +125,6 @@ disp('Color balance training parameters:')
 disp('=================================================================');
 field_names = fieldnames(param);
 field_name_dict.loss = 'Loss function';
-field_name_dict.model = 'Color correction model';
 field_name_dict.targetcolorspace = 'Color space of the target responses';
 field_name_dict.weights = 'Sample weights';
 

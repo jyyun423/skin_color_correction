@@ -28,7 +28,7 @@ sRGB_Values = ([...
 160,160,160
 122,122,121
 85,85,85
-52,52,52]) / 255;
+52,52,52]) / (2^8 - 1);
 
 xyz_Values = ([...
 0.11543,0.10100,0.07214
@@ -99,7 +99,6 @@ function param = parseInput(varargin)
 % parse inputs & return structure of parameters
 parser = inputParser;
 parser.addParameter('colorspace', 'sRGB', @(x)ischar(x));
-% parser.addParameter('illuminant', 'D65', @(x)ischar(x));
 parser.parse(varargin{:});
 param = parser.Results;
 end
@@ -115,10 +114,4 @@ if ~ismember(lower(param.colorspace), colorspace_list)
         param.colorspace);
 end
 
-% %check the illuminant
-% illuminant_list = {'d65'}; % add more
-% if ~ismember(lower(param.illuminant), illuminant_list)
-%     error('%s is not a valid illuminant',...
-%         param.illuminant);
-% end
 end
