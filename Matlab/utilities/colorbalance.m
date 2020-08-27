@@ -9,10 +9,11 @@ function [cbmat, errs] = ...
 %
 % Optional Parameters:
 % loss:     linear or nonlinear
-%           in srgb colorspace, angular error metric is used
-%           in CIE xyz colorspace, CIEDE 2000 delta E error metric is used
-% weight:   weight coefficients for sample
-% targetcolorspace: sRGB | xyz 
+% model:    remove the effects of the illumination
+%           'whitebalance' | 'fullcolorbalance' (default = fullcolorbalance)
+% weight:   
+% targetcolorspace: sRGB / xyz > for srgb target, error metric is angular
+% reproduction err for xyz deltaE00
 %
 % Outputs:
 % cbmat:    3x3 optimal color balance matrix
@@ -54,7 +55,7 @@ switch lower(param.loss)
                 errs = @(x) angular_error(predicted_response(x), target); % is angular error for normalized rgb?
             case 'xyz'
                 predicted_lab = @(x) xyz2lab(predicted_response(x));
-                errs = @(x) deltaE2000_error(predicted_lab(x), target_lab);
+                errs = @(x) deltaE2000_error(predicted_lab(x), target_lab, 'KLCH', [2 1 1]);
         end
 
         errs = @(x) param.weights' .* errs(x);
@@ -90,6 +91,7 @@ function param = parseInput(varargin)
 % parse inputs & return structure of parameters
 parser = inputParser;
 parser.addParameter('loss', 'linear', @(x)ischar(x));
+parser.addParameter('model', 'fullcolorbalance', @(x)ischar(x));
 parser.addParameter('weights', [], @(x)validateattributes(x, {'numeric'}, {'positive'}));
 parser.addParameter('targetcolorspace', 'xyz', @(x)ischar(x));
 parser.parse(varargin{:});
@@ -99,6 +101,13 @@ end
 
 function param = paramCheck(param)
 % check the parameters
+
+% check the color balance model
+model_list = {'whitebalance', 'fullcolorbalance'};
+if ~ismember(lower(param.model), model_list)
+    error('%s is not a valid color balance model',...
+        param.model);
+end
 
 %check the loss function
 metric_list = {'linear', 'nonlinear'};
@@ -125,6 +134,7 @@ disp('Color balance training parameters:')
 disp('=================================================================');
 field_names = fieldnames(param);
 field_name_dict.loss = 'Loss function';
+field_name_dict.model = 'Color correction model';
 field_name_dict.targetcolorspace = 'Color space of the target responses';
 field_name_dict.weights = 'Sample weights';
 
