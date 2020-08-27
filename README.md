@@ -11,4 +11,5 @@ Matlab 2019a
 optimization toolbox
 deep optimization toolbox
 image processing and computer vision toolbox
+deep learning toolbox
 ```
